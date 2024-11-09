@@ -1,29 +1,156 @@
-if (index < 0 || index >= buckets.length) {
-    throw new Error("Trying to access index out of bound");
-  }
+// if (index < 0 || index >= buckets.length) {
+//     throw new Error("Trying to access index out of bound");
+//   }
   
 function HashMap() {
-    const capacity = 16
-    const loadFactor = 0.8
+    let capacity = 16
+    const loadFactor = 0.75
+    let load = 0
 
-    let hashmap = Array(capacity)
+    let hashmap = new Array(capacity)
         .fill(null)
         .map(() => [])
 
-    hash = (key) => {
+
+    const calculateLoad = () => {
+        if (load <= (capacity*loadFactor)) {
+            return false
+        } else {
+            console.log("load amount:" + capacity*loadFactor)
+            return true
+        }
+    }
+
+    const hash = (key) => {
         let hashCode = 0;
            
         const primeNumber = 31;
         for (let i = 0; i < key.length; i++) {
             //modulo on the end
-          hashCode = primeNumber * hashCode + key.charCodeAt(i) % capacity;
+          hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % capacity;
         }
      
         return hashCode;
     }
 
-    set = (key, value) => {
+    const set = (key, value) => {
+        const nextNode = null
+        const hashedKey = hash(key)
+        console.log(hashedKey)
         
+
+        if (hashmap[hashedKey].length === 0 ){
+            hashmap[hashedKey].push({key,value,nextNode})
+            load ++
+        } else if (hashmap[hashedKey][0].key === key ){
+            hashmap[hashedKey][0].value = value
+        } else {
+            let pointer = hashmap[hashedKey][0]
+            while (pointer.nextNode !== null) {
+                pointer = pointer.nextNode
+            }
+            pointer.nextNode = {key,value,nextNode}
+            load ++
+        }
+
+        if (calculateLoad()){
+            console.log("resizing")
+            resize()
+        } 
+    }
+
+    const get = (key) => {
+        for (i = 0; i<hashmap.length; i++) {
+            // if the array is not empty
+            if (hashmap[i].length !== 0){
+                // if this is the end of the linked list
+                if (hashmap[i][0].nextNode === null) {
+                    // if key in hash map = given key
+                    if (hashmap[i][0].key === key) {
+                        return hashmap[i][0].value
+                    }
+                } else {
+                    let pointer = hashmap[i][0]
+                    while (pointer.nextNode !== null) {
+                        if (pointer.key === key) {
+                            return pointer.value
+                        }
+                        pointer = pointer.nextNode
+                    }
+                    if (pointer.key === key) {
+                        return pointer.value
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+
+    const resize = () => {
+        
+        let oldHash = hashmap
+        
+        capacity = capacity * 2
+        load = 0
+        hashmap = new Array(capacity)
+            .fill(null)
+            .map(() => [])
+        for (i = 0; i<oldHash.length; i++) {
+            if (oldHash[i].length === 0){
+            } else {
+                if (oldHash[i][0].nextNode === null) {
+                    set(oldHash[i][0].key,oldHash[i][0].value)
+                } else {
+                    let pointer = oldHash[i][0]
+                    while (pointer.nextNode !== null){
+                        set(pointer.key, pointer.value)
+                        pointer = pointer.nextNode
+                    }
+                    set(pointer.key, pointer.value)
+                }
+            }
+        }
+    }
+
+    const clear = () => {
+        capacity = 16
+        hashmap = new Array(capacity)
+            .fill(null)
+            .map(() => [])
+    }
+
+    const entries = () => {
+        console.log(hashmap)
+        console.log(hashmap.length)
+    }
+
+    return {
+        hash,
+        set,
+        entries,
+        clear,
+        get
     }
 }
+
+const test = new HashMap() // or HashMap() if using a factory
+
+test.set('apple', 'red')
+test.set('banana', 'yellow')
+test.set('carrot', 'orange')
+test.set('dog', 'brown')
+test.set('elephant', 'gray')
+test.set('frog', 'green')
+test.set('grape', 'purple')
+test.set('hat', 'black')
+test.set('ice cream', 'white')
+test.set('jacket', 'blue')
+test.set('kite', 'pink')
+test.set('lion', 'golden')
+// test.set('lion', 'silver')
+// test.set('moon', 'silver')
+
+test.entries()
+console.log(test.get("lion"))
 
